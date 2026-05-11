@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aura — AI Emotion Detection</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@500;700&display=swap"
+        rel="stylesheet" />
+    <style>
+        :root {
+            --bg-deep: #09090b;
+            --bg-panel: rgba(24, 24, 27, 0.6);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+            --accent-glow: rgba(59, 130, 246, 0.5);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Background Effects */
+        .bg-glow {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+            top: -200px;
+            left: -200px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-glow-2 {
+            position: fixed;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(217, 70, 239, 0.1) 0%, transparent 70%);
+            bottom: -100px;
+            right: -100px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Navbar */
+        nav {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 3rem;
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(12px);
+        }
+
+        .logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: white;
+        }
+
+        .logo-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-main);
+        }
+
+        main {
+            position: relative;
+            z-index: 1;
+            padding: 4rem 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .hero h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero h1 span {
+            background: linear-gradient(to right, #3b82f6, #d946ef);
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .hero p {
+            color: var(--text-muted);
+            max-width: 500px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Panel */
+        .panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 600px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .drop-zone {
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 1.5rem;
+        }
+
+        .drop-zone.dragover {
+            border-color: var(--accent);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .drop-zone p {
+            margin-bottom: 1.5rem;
+            color: var(--text-muted);
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            border-color: #2563eb;
+        }
+
+        .btn-submit {
+            width: 100%;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+            justify-content: center;
+        }
+
+        /* Camera & Preview */
+        #cameraSection,
+        #previewSection {
+            display: none;
+            margin-bottom: 1.5rem;
+        }
+
+        .media-wrapper {
+            position: relative;
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #000;
+            border: 1px solid var(--border);
+        }
+
+        video,
+        #previewImg {
+            display: block;
+            width: 100%;
+            height: auto;
+            max-height: 400px;
+            object-fit: contain;
+        }
+
+        .camera-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        #errorMsg {
+            color: #ef4444;
+            text-align: center;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+        }
+
+        /* Results */
+        .result-container {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            margin-top: 2rem;
+            background: #000;
+        }
+
+        .result-container img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        #resultCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .detection-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .det-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .det-emotion {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+        }
+
+        .det-conf {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .link-live {
+            display: block;
+            text-align: center;
+            margin-top: 1.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .link-live:hover {
+            color: var(--accent);
+        }
+
+        /* Loader */
+        .loader {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media(max-width: 600px) {
+            nav {
+                padding: 1rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-glow"></div>
+    <div class="bg-glow-2"></div>
+
+    <nav>
+        <a href="/" class="logo">
+            <div class="logo-dot"></div> AURA
+        </a>
+        <ul class="nav-links">
+            <li><a href="/">Static Analysis</a></li>
+            <li><a href="/live-cam">Live Detection</a></li>
+            <li><a href="/guide">Guide</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <div class="hero">
+            <h1>Sense <span>Emotion</span> Instantly</h1>
+            <p>Upload a photo or take a picture to analyze facial micro-expressions using advanced neural networks.</p>
+        </div>
+
+        <form id="uploadForm" action="/" method="post" enctype="multipart/form-data" class="panel">
+
+            <div class="drop-zone" id="dropArea">
+                <p>Drag & drop an image, or select an option below.</p>
+                <div class="btn-group">
+                    <button type="button" class="btn" id="browseBtn">📁 Browse Files</button>
+                    <button type="button" class="btn" id="takePhotoBtn">📷 Take Photo</button>
+                </div>
+            </div>
+
+            <input type="file" name="image" id="imageInput" accept="image/*" style="display:none;" />
+
+            <div id="cameraSection">
+                <div class="media-wrapper">
+                    <video id="videoEl" autoplay playsinline muted></video>
+                </div>
+                <div class="camera-controls">
+                    <button type="button" class="btn btn-primary" id="captureBtn">Capture Frame</button>
+                    <button type="button" class="btn" id="closeCameraBtn">Cancel</button>
+                </div>
+            </div>
+
+            <div id="previewSection">
+                <div class="media-wrapper">
+                    <img id="previewImg" src="" />
+                </div>
+                <div class="camera-controls">
+                    <button type="button" class="btn" id="clearBtn">Clear Image</button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-submit" id="predictBtn">Analyze Expressions</button>
+            <p id="errorMsg"></p>
+            <a href="/live-cam" class="link-live">Switch to Real-time Camera ➔</a>
+
+            {% if img_data %}
+            <div style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2rem;">
+                <h3 style="font-family:'Space Grotesk'; margin-bottom: 1rem;">Analysis Results</h3>
+
+                <div class="result-container">
+                    <img id="resultImg" src="data:image/png;base64,{{ img_data }}" />
+                    <canvas id="resultCanvas"></canvas>
+                </div>
+
+                {% if detections %}
+                <div class="detection-cards">
+                    {% for d in detections %}
+                    <div class="det-card" style="border-bottom: 3px solid {{ d.color }};">
+                        <div class="det-emotion" style="color: {{ d.color }};">{{ d.emotion }}</div>
+                        <div class="det-conf">{{ d.confidence }}% Confidence</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="text-align:center; color:#94a3b8; margin-top:1rem;">No faces detected.</p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </form>
+    </main>
+
+    <div class="loader" id="loader">
+        <div class="spinner"></div>
+    </div>
+
+    {% if img_data and detections %}
+    <script>
+        window.addEventListener('load', () => {
+            const img = document.getElementById('resultImg');
+            const canvas = document.getElementById('resultCanvas');
+            const ctx = canvas.getContext('2d');
+            const detections = {{ detections | tojson | default ('[]') | safe
+        }};
+
+        function drawBoxes() {
+            canvas.width = img.clientWidth;
+            canvas.height = img.clientHeight;
+
+            const scaleX = img.clientWidth / img.naturalWidth;
+            const scaleY = img.clientHeight / img.naturalHeight;
+
+            detections.forEach(d => {
+                const x = d.x1 * scaleX;
+                const y = d.y1 * scaleY;
+                const w = (d.x2 - d.x1) * scaleX;
+                const h = (d.y2 - d.y1) * scaleY;
+
+                // Box
+                ctx.strokeStyle = d.color;
+                ctx.lineWidth = 3;
+                ctx.strokeRect(x, y, w, h);
+
+                // Background for text
+                ctx.fillStyle = "rgba(0,0,0,0.7)";
+                ctx.fillRect(x, y - 25 > 0 ? y - 25 : y + h, w, 25);
+
+                // Text
+                ctx.fillStyle = d.color;
+                ctx.font = "bold 14px Inter";
+                ctx.fillText(`${d.emotion} ${d.confidence}%`, x + 5, y - 25 > 0 ? y - 8 : y + h + 18);
+            });
+        }
+
+        if (img.complete) drawBoxes();
+        else img.onload = drawBoxes;
+        window.addEventListener('resize', drawBoxes);
+            });
+    </script>
+    {% endif %}
+
+    <script>
+        const imageInput = document.getElementById("imageInput");
+        const dropArea = document.getElementById("dropArea");
+        const browseBtn = document.getElementById("browseBtn");
+        const takePhotoBtn = document.getElementById("takePhotoBtn");
+        const previewSection = document.getElementById("previewSection");
+        const previewImg = document.getElementById("previewImg");
+        const clearBtn = document.getElementById("clearBtn");
+        const form = document.getElementById("uploadForm");
+        const loader = document.getElementById("loader");
+        const errorMsg = document.getElementById("errorMsg");
+
+        // Camera Elements
+        const cameraSection = document.getElementById("cameraSection");
+        const videoEl = document.getElementById("videoEl");
+        const captureBtn = document.getElementById("captureBtn");
+        const closeCameraBtn = document.getElementById("closeCameraBtn");
+
+        let stream = null;
+
+        function showPreview(src) {
+            previewImg.src = src;
+            previewSection.style.display = "block";
+            cameraSection.style.display = "none";
+        }
+
+        function clearAll() {
+            previewImg.src = "";
+            previewSection.style.display = "none";
+            imageInput.value = "";
+            errorMsg.textContent = "";
+        }
+
+        // File Browse
+        browseBtn.addEventListener("click", () => imageInput.click());
+        imageInput.addEventListener("change", function () {
+            if (this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => showPreview(e.target.result);
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        // Drag & Drop
+        dropArea.addEventListener("dragover", (e) => { e.preventDefault(); dropArea.classList.add("dragover"); });
+        dropArea.addEventListener("dragleave", () => dropArea.classList.remove("dragover"));
+        dropArea.addEventListener("drop", (e) => {
+            e.preventDefault(); dropArea.classList.remove("dragover");
+            if (e.dataTransfer.files[0]) {
+                imageInput.files = e.dataTransfer.files;
+                imageInput.dispatchEvent(new Event("change"));
+            }
+        });
+
+        clearBtn.addEventListener("click", clearAll);
+
+        // Camera Logic
+        takePhotoBtn.addEventListener("click", async () => {
+            clearAll();
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                videoEl.srcObject = stream;
+                cameraSection.style.display = "block";
+            } catch (err) {
+                errorMsg.textContent = "Camera access denied.";
+            }
+        });
+
+        closeCameraBtn.addEventListener("click", () => {
+            if (stream) stream.getTracks().forEach(t => t.stop());
+            cameraSection.style.display = "none";
+        });
+
+        captureBtn.addEventListener("click", () => {
+            const canvas = document.createElement("canvas");
+            canvas.width = videoEl.videoWidth;
+            canvas.height = videoEl.videoHeight;
+            canvas.getContext("2d").drawImage(videoEl, 0, 0);
+
+            canvas.toBlob(blob => {
+                const file = new File([blob], "capture.jpg", { type: "image/jpeg" });
+                const dt = new DataTransfer(); dt.items.add(file);
+                imageInput.files = dt.files;
+                showPreview(URL.createObjectURL(blob));
+                closeCameraBtn.click();
+            }, "image/jpeg", 0.9);
+        });
+
+        // Submit
+        form.addEventListener("submit", (e) => {
+            if (!imageInput.files.length) {
+                e.preventDefault();
+                errorMsg.textContent = "Please provide an image first.";
+                return;
+            }
+            loader.style.display = "flex";
+        });
+    </script>
+</body>
+
+</html>
